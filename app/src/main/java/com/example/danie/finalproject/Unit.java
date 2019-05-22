@@ -39,7 +39,7 @@ public class Unit extends Tile {
     public int getSize() {
         return type.getSize();
     }
-    // ?????????????????
+
     public static void drawUnits(Unit[] units, Canvas canvas,  Paint paint){
 
 
@@ -47,10 +47,7 @@ public class Unit extends Tile {
 
             if(i.getSelf().size()==1)
             canvas.drawBitmap(DrawThread.landscapes, i.getSelf().get(0), new Rect(i.x, i.y, i.x+i.getSize(), i.y+i.getSize()), paint);
-            else {
-              //  new dThr().execute(i);
 
-            }
         }
     }
 

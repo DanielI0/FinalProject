@@ -32,6 +32,7 @@ public class Loader {
         }
     }
 
+
     class Load extends AsyncTask<String, String, Player> {
         String o;
         @Override

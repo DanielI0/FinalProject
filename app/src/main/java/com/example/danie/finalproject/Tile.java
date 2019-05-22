@@ -8,11 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tile {
+    public final static String[] articles = //{"castle", "farmer", "racks", "townhall_2", "townhall_3"};
+            {"castle", "farmer"};
+    //for animations
     protected List<Rect> self = new ArrayList<>();
-    int cost;
+    //stats
+    int cost, income, attack, defend;
+    //pos in shop
+    public int shopX, shopY;
+
     public final int DEFAULT_PROJ_SIZE = 128;
     int size = DEFAULT_PROJ_SIZE;
     private final int DEFAULT_TILE_SIZE = 16;
+
     int left, top;
     public Tile(){
 
@@ -20,14 +28,10 @@ public class Tile {
     //private Bitmap self;
     BitmapFactory.Options options = new BitmapFactory.Options();
     public Tile(String name){
-
         switch (name){
-
             case "grass_1":
                 left = DEFAULT_TILE_SIZE*2;
                 top = 0;
-
-                //self = BitmapFactory.decodeResource(DrawThread.context.getResources(),R.drawable.landscape_tiles, options);
                 self.add(new Rect(left, top, left + 16, top +16));
                 break;
             case "grass_2":
@@ -46,10 +50,11 @@ public class Tile {
             case "farmer":
                 left = DEFAULT_TILE_SIZE*6;
                 top = DEFAULT_TILE_SIZE*13;
+                cost = 100;
                 self.add(new Rect(left, top, left + DEFAULT_TILE_SIZE, top + DEFAULT_TILE_SIZE));
                 break;
             case "racks":
-
+                cost = 500;
                 break;
             case "townhall_1":
                 top = 7*DEFAULT_TILE_SIZE;
@@ -60,17 +65,32 @@ public class Tile {
             case "townhall_2":
                 top = 7*DEFAULT_TILE_SIZE;
                 left = 0;
+                cost = 5000;
                 size = DEFAULT_PROJ_SIZE*2;
                 self.add(new Rect(left, top, left + 2*DEFAULT_TILE_SIZE, top + 2*DEFAULT_TILE_SIZE));
                 break;
             case "townhall_3":
                 top = 7*DEFAULT_TILE_SIZE;
                 left = 4*DEFAULT_TILE_SIZE;
+                cost = 20000;
                 size = DEFAULT_PROJ_SIZE*2;
                 self.add(new Rect(left, top, left + 2*DEFAULT_TILE_SIZE, top + 2*DEFAULT_TILE_SIZE));
                 break;
-            case "flag_1":
 
+             /*
+                    UI tile properties:
+                    40 ???
+                        size = 32*32,   left margin = ?
+              */
+
+            case "ui_window":
+                self.add(new Rect(40, 320,240, 360));
+                break;
+            case "block":
+                self.add(new Rect());
+                break;
+            case "arrow_right":
+                self.add(new Rect(40, 40, 80, 80));
                 break;
         }
     }

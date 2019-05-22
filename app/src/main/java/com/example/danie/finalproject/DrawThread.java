@@ -14,24 +14,25 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.example.danie.finalproject.API.Loader;
-
-import java.io.IOException;
 import java.util.List;
 
-import static com.example.danie.finalproject.Unit.draw;
-
 public class DrawThread extends Thread {
-
+    public volatile boolean shopClosed = true;
     public static SurfaceHolder surfaceHolder;
-    static int c = 2, iter = 0;
+    static int c = 2, iter = 0, location = 0;
+    //location 0 - radiant, 1 - battle , 2 - dire
     public static Context context;
-    public static Bitmap landscapes;
+    public static Bitmap landscapes, interfaces;
     public static Canvas canvas;
+    public Player you, opponent;
+
     private volatile boolean running = true;//флаг для остановки потока
 
-    public DrawThread(Context context, SurfaceHolder surfaceHolder) {
+    public DrawThread(Context context, SurfaceHolder surfaceHolder, Player you , Player opponent) {
         this.surfaceHolder = surfaceHolder;
         this.context = context;
+        this.you = you;
+        this.opponent = opponent;
     }
 
 
@@ -45,7 +46,7 @@ public class DrawThread extends Thread {
     public void run() {
 
         landscapes = BitmapFactory.decodeResource(context.getResources(), R.drawable.landscape_tiles );
-
+        interfaces = BitmapFactory.decodeResource(context.getResources(), R.drawable.user_interface);
         Paint paint = new Paint();
         paint.setColor(Color.RED);
         paint.setStyle(Paint.Style.STROKE);
@@ -58,41 +59,58 @@ public class DrawThread extends Thread {
             }
             canvas = surfaceHolder.lockCanvas();
             if (canvas != null) {
+
                 try {
-                    paint.setColor(Color.DKGRAY);
-                    paint.setStyle(Paint.Style.FILL);
 
-                    /*
-                            Заполнение ландшафта
-                            **Starting match**
-                            ** Logging in
-                     */
+                        paint.setColor(Color.DKGRAY);
+                        paint.setStyle(Paint.Style.FILL);
 
-                    for (int width = 0; width < 1280; width+=64)
-                        for (int height = 0; height < 720; height+=64)
-                                canvas.drawBitmap(landscapes, new Tile("grass_2").getSelf().get(0), new Rect(width, height, width+64, height+64), paint);
-                    //Stats
-                    canvas.drawRect(new Rect(0, 440, 450, 720),paint );
-                    //Shop
-                    canvas.drawRect(new Rect(500, 620, 500+200, 720), paint);
-                    paint.setColor(Color.WHITE);
-                    paint.setTextSize(28);
-                    canvas.drawText("Stats:", 10, 470, paint );
-                    canvas.drawText("Defend:", 10, 498, paint );
-                    canvas.drawText(new Loader("admin", "101").getOutNet().toString(), 10, 526, paint );
+                        for (int width = 0; width < 1280; width += 64)
+                            for (int height = 0; height < 720; height += 64)
+                                canvas.drawBitmap(landscapes, new Tile("grass_2").getSelf().get(0), new Rect(width, height, width + 64, height + 64), paint);
 
-                    Unit units[] = new Unit[3];
-                    units[0] = new Unit("castle", 0, 0);
-                    units[1] = new Unit("castle", 1200, 222);
-                    units[2] = new Unit("townhall_1", 128, 128);
-                    /*
-                            Заворачиваем в функцию
-                     */
-                    List<Rect> frames = units[0].getSelf();
+                        //Stats
 
-                    canvas.drawBitmap(DrawThread.landscapes, frames.get(iter%frames.size()), new Rect(units[0].x, units[0].y, units[0].x + units[0].getSize(), units[0].y + units[0].getSize()), new Paint());
-                    iter++;
+                        canvas.drawRect(new Rect(0, 440, 450, 720), paint);
 
+                        //Shop
+
+                        canvas.drawRect(new Rect(500, 620, 500 + 200, 720), paint);
+                        if (!shopClosed) {
+                            drawShop();
+                        }
+                        switch (location) {
+                            case 0:
+                            //Next Location
+                            canvas.drawRect(new Rect(1260, 290, 1280, 330), paint);
+
+
+                            paint.setColor(Color.WHITE);
+                            paint.setTextSize(28);
+                            canvas.drawText("Stats:", 10, 470, paint);
+                            canvas.drawText("Defend:", 10, 498, paint);
+                            canvas.drawText(new Loader("admin", "101").getOutNet().toString(), 10, 526, paint);
+
+                            Unit units[] = new Unit[3];
+                            units[0] = new Unit("castle", 0, 0);
+                            units[1] = new Unit("castle", 1200, 222);
+                            units[2] = new Unit("townhall_1", 128, 128);
+                        /*
+                                Заворачиваем в функцию
+                         */
+                            List<Rect> frames = units[0].getSelf();
+
+                            canvas.drawBitmap(DrawThread.landscapes, frames.get(iter % frames.size()), new Rect(units[0].x, units[0].y, units[0].x + units[0].getSize(), units[0].y + units[0].getSize()), new Paint());
+
+                            iter++;
+                            break;
+                        case 1:
+
+                            break;
+                        case 2:
+
+                            break;
+                    }
                 }  finally {
                     surfaceHolder.unlockCanvasAndPost(canvas);
 
@@ -101,4 +119,26 @@ public class DrawThread extends Thread {
         }
     }
 
+    public void drawShop(){
+        int x = 255, y = 300;
+        Tile bitItem;
+        Paint locP = new Paint();
+        locP.setColor(Color.rgb(62, 36, 26));
+
+        locP.setTextSize(30);
+        canvas.drawRect(new Rect(250, 250, 1030, 500), locP);
+        canvas.drawBitmap(DrawThread.interfaces, new Tile("ui_window").getSelf().get(0), new Rect(250, 250, 1030, 300), locP);
+        locP.setColor(Color.WHITE);
+        for(String item : Tile.articles){
+            bitItem = new Tile(item);
+            canvas.drawBitmap(DrawThread.landscapes, bitItem.getSelf().get(0), new Rect(x,y, x+bitItem.DEFAULT_PROJ_SIZE, y+bitItem.DEFAULT_PROJ_SIZE), new Paint());
+            canvas.drawText(bitItem.cost+"$", x, y+bitItem.DEFAULT_PROJ_SIZE, locP);
+            x+=bitItem.DEFAULT_PROJ_SIZE;
+
+            if(x>=1030){
+                x = 255;
+                y+=bitItem.DEFAULT_PROJ_SIZE;
+            }
+        }
+    }
 }
