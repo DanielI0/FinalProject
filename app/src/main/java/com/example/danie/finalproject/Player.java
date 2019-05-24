@@ -2,12 +2,14 @@ package com.example.danie.finalproject;
 
 import com.example.danie.finalproject.API.Loader;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Player {
+public class Player implements Serializable {
 
     int id, mmr , status;
     String name, password;
+    ArrayList<Unit> squad = new ArrayList<>();
     int money = 3000, edge;
 
     public ArrayList<Unit> team = new ArrayList<>();
@@ -21,28 +23,31 @@ public class Player {
         this.password = password;
         this.mmr = mmr;
         this.status = status;
+        money = 3000;
     }
     public Player(int id, String name,  int mmr, int edge){
         this.id = id;
         this.name = name;
-        this.password = password;
+       // this.password = password;
         this.mmr = mmr;
         this.edge = edge;
+        money = 3000;
     }
-    public void buy_unit(String tileName, int x, int y){
-        if(money>=new Tile(tileName).cost) {
-            /* post request*/
-            new Unit(tileName, x, y);
-        }
-    }
+
+
     //@androidx.annotation.NonNull
     @Override
     public String toString() {
-        return name+" "+id+""+mmr;
+        return name+" id: "+id+" "+mmr;
     }
     public void changeMoney(){
         for(Unit i : team){
-
+            money += i.income;
         }
     }
+    public void buy_unit(Unit unit){
+        money -= unit.cost;
+        team.add(unit);
+    }
+
 }

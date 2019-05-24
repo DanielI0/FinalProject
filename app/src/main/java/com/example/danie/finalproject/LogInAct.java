@@ -6,10 +6,13 @@ import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.example.danie.finalproject.API.Loader;
 
 public class LogInAct extends AppCompatActivity {
     private int currentApiVersion;
@@ -73,9 +76,13 @@ public class LogInAct extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-
-                FullscreenActivity.user = new Player(nameOut.getText().toString(), passwordOut.getText().toString());
+                Log.e("Logging in", nameOut.getText().toString()+ " "+passwordOut.getText().toString());
+                Player user = new Loader(nameOut.getText().toString(), passwordOut.getText().toString()).getOutNet();
+                new Loader.Onliner().execute(user.id, 1);
+                FullscreenActivity.save(user);
+                // 1 - online
                 Intent i = new Intent(LogInAct.this, FullscreenActivity.class);
+
                 startActivity(i);
             }
         });

@@ -3,6 +3,7 @@ import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -14,10 +15,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.example.danie.finalproject.FullscreenActivity.load;
+
 public class MainView extends SurfaceView implements SurfaceHolder.Callback
 {
     Context context;
-    Player you, opponent;
+
+    Player you, opponent, user = load();
     private DrawThread drawThread;
     public MainView(Context context) {
         super(context);
@@ -27,37 +31,53 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        user = load();
         Thread searchThread = new Thread(){
+            String line = " ";
+            boolean havePair = false;
             @Override
             public void run() {
-                try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL("https://peaceful-citadel-74350.herokuapp.com/db?id="+FullscreenActivity.user.id).openConnection();
-                    connection.setRequestMethod("GET");
-                    StringBuilder content;
-                    try (
-                            BufferedReader in = new BufferedReader(
-                                    new InputStreamReader(connection.getInputStream())))
+                while(you==null ) {
+                    try {
+                        HttpURLConnection connection = (HttpURLConnection) new URL("https://peaceful-citadel-74350.herokuapp.com/db?id=" + user.id).openConnection();
+                        connection.setRequestMethod("GET");
+                        StringBuilder content;
+                        try (
+                                BufferedReader in = new BufferedReader(
+                                        new InputStreamReader(connection.getInputStream())))
 
-                    {
+                        {
 
-                        String line;
-                        content = new StringBuilder();
 
-                        while ((line = in.readLine()) != null) {
-                            content.append(line);
-                            content.append(System.lineSeparator());
+                            content = new StringBuilder();
+
+                            while ((line = in.readLine()) != null) {
+                                content.append(line);
+                                content.append(System.lineSeparator());
+                            }
+                            line = content.toString();
+                            line = line.substring(line.indexOf("<li>"), line.indexOf("</li>"));
+                            line = line.substring(4);
+                            String[] data = line.split(" ");
+                            Log.e("WLC", data[0]+" "+data[1]+" "+data[3]+" "+data[4]);
+                            //if(data[0].equals("resume")) continue;
+
+                            if (user.id == Integer.parseInt(data[0])) {
+                                you = new Player(Integer.parseInt(data[0]), data[1], Integer.parseInt(data[2]), 0);
+                                Log.e("WLC", you.toString());
+                                opponent = new Player(Integer.parseInt(data[3]), data[4], Integer.parseInt(data[5]), 2);
+                            }else {
+                                opponent = new Player(Integer.parseInt(data[0]), data[1], Integer.parseInt(data[2]), 0);
+                                you = new Player(Integer.parseInt(data[3]), data[4], Integer.parseInt(data[5]), 2);
+                            }
+
                         }
-                        line = content.toString();
-                        line = line.substring(line.indexOf("<li>"),line.indexOf("</li>"));
-                        String[] data = line.split(" ");
-                        if(
+                    } catch (Exception e) {
 
+                        e.printStackTrace();
 
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-
             }
         };
         searchThread.start();
@@ -66,25 +86,37 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        drawThread = new DrawThread(getContext(),getHolder());
+//        Log.e("MyLog:", you.toString()+" " +opponent.toString() );
+        drawThread = new DrawThread(getContext(),getHolder(),you, opponent);
+        //drawThread = new DrawThread(getContext(), getHolder());
         drawThread.start();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if(drawThread.shopClosed) {
-            if (event.getX() <= 300 && event.getY() <= 300) {
-                Paint paint = new Paint();
-                paint.setTextSize(32);
-                drawThread.canvas.drawText("damaged", event.getX(), event.getY(), paint);
-                DrawThread.iter = (DrawThread.iter == 1) ? 0 : 1;
-            }
-            else if(event.getY()>=620 && event.getY()<=720 && event.getX()>=500 && event.getX()<=700){
+            if(event.getY()>=620 && event.getY()<=720 && event.getX()>=500 && event.getX()<=700){
                 drawThread.shopClosed = false;
 
             }
         }else{
+            float x = event.getX(), y = event.getY();
+            int iter = 0;
+            for(int j = 300;j<y;j+=128)
+            for (int i = 255; i < ((j+128 > y)? x:1030); i+=128) {
+                iter ++;
+            }Log.e("WLC", ""+iter);
+            try {
+                //user.buy_unit(, (int) x, (int) y));
+                user.money -= new Unit(new Tile(Tile.articles[iter-1]),(int) x, (int) y).cost;
+                user.team.add(new Unit(new Tile(Tile.articles[iter-1]),(int) x, (int) y));
+                Log.e("wlc", ""+new Unit(new Tile(Tile.articles[iter-1]), (int) x, (int) y).cost);
+                FullscreenActivity.save(user);
+                drawThread.personChanged = true;
 
+            }catch (IndexOutOfBoundsException e){
+                drawThread.shopClosed = true;
+            }
         }
 
         return super.onTouchEvent(event);

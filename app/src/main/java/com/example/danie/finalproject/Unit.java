@@ -1,5 +1,6 @@
 package com.example.danie.finalproject;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -7,29 +8,33 @@ import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.view.SurfaceHolder;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Unit extends Tile {
+public class Unit implements Serializable {
     // Image
     public static volatile boolean draw = true;
-
-    Tile type;
+    Bitmap[] run,attack;
+    Bitmap model;
     //int frames = 1;
     // Location
     public int x, y;
+    int cost, income, damage, hp, range, ms;
     public void stopDraw(){
         draw = false;
     }
-    public Unit(String name) {
-        super(name);
-    }
 
-    public Unit(String name, int x, int y) {
-        this.type = new Tile(name);
+    public Unit(Tile tile, int x, int y) {
+        //this.type = new Tile(name);
         this.x = x;
         this.y = y;
+        this.cost = tile.cost;
+    }
+    public Unit(){
+
     }
 
+    /*
     @Override
     public List<Rect> getSelf() {
         return type.getSelf();
@@ -50,6 +55,6 @@ public class Unit extends Tile {
 
         }
     }
-
+*/
 
 }
